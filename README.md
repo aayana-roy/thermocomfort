@@ -35,8 +35,7 @@ comfort_index = (
   +0.5 × cool_count +
   +1 × cold_count
 ) / total_ratings
-
----
+```
 
 ## 🧰 Tech Stack
 
