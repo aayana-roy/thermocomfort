@@ -1,5 +1,6 @@
 ### Hi! Thanks for stopping by!
-### Welcome to **ThermoComfort** — a project to make indoor climate more human-centered and energy-efficient.
+### Welcome to **ThermoComfort**
+A project to make indoor climate more human-centered and energy-efficient.
 
 ## Problem Identified
 Temperature discomfort in buildings is a persistent yet often underestimated issue. In educational and office settings, occupants frequently report spaces that are excessively cold in the summer or uncomfortably heated in the winter, even when HVAC systems are fully operational. These conditions adversely affect thermal comfort, cognitive performance, and occupant satisfaction.
