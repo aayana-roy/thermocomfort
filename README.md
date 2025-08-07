@@ -36,15 +36,17 @@ comfort_index = (
   +1 × cold_count
 ) / total_ratings
 
-## Tech Stack
+---
+
+## 🧰 Tech Stack
 
 | Layer            | Tools Used                              |
 | ---------------- | --------------------------------------- |
 | Data Collection  | HTML/JS Web App, QR codes, Desk Tents   |
-| Backend Database | Firebase       |
+| Backend Database | Firebase                                |
 | Analysis         | Python (Pandas), SQL                    |
-| Visualization    | Python, HTML/JS Web App Dashboard |
-| Hosting          | aayana.com.np domain         |
+| Visualization    | Python, HTML/JS Web App Dashboard       |
+| Hosting          | aayana.com.np domain                    |
 
 
 ## Planned Data Flow
