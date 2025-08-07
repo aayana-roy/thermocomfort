@@ -11,8 +11,9 @@ Moreover, HVAC systems often run continuously — including during unoccupied ho
 
 ## My Approach
 ThermoComfort bridges the gap between building HVAC operations and real-time human comfort. Its goal is to make HVAC systems more responsive, efficient, and human-centric by integrating user feedback, occupancy patterns, and environmental data into control decisions.
+
 I've built a system that:
-This system:
+
 - 🧍 Collects user feedback on **thermal, lighting, and sound** comfort via a mobile-friendly web tool.
 - 📍 Ties responses to specific rooms using **WiFi-based location or map polygons**.
 - ⏰ Logs inputs with timestamps to capture **time-of-day trends**.
@@ -81,3 +82,9 @@ This approach is scalable and adaptable to various building types, with special 
 
 ## Acknowledgments
 This project is part of a student-led initiative in collaboration with the ASM Sustainability Team and the UW–Madison Office of Sustainability. Special thanks to collaborators, facilities staff, and user testers.
+
+I've built a system that:
+- Collects occupant feedback on thermal comfort using a lightweight digital form.
+- Maps discomfort trends by time and room.
+- Correlates those trends with CO₂ concentration data, local weather, and HVAC runtime patterns (setpoints).
+- Proposes actionable insights for facilities teams to optimize temperature settings, reduce over-conditioning, and minimize energy waste — all while improving occupant well-being.
