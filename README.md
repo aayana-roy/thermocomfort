@@ -62,6 +62,7 @@ Dashboard Visualization + Suggestions
 ## Pilot Details
 
 Current Site: College Library, UW–Madison
+
 Pilot Tools: Desk tents with QR codes, web dashboard for 1st floor
 
 ## Goals:
