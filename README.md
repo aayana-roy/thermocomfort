@@ -89,9 +89,9 @@ This approach is scalable and adaptable to various building types, with special 
 
 ## Acknowledgments
 This project is part of a student-led initiative in collaboration with the ASM Sustainability Team and the UW–Madison Office of Sustainability. Special thanks to collaborators, facilities staff, and user testers.
-
+<!--
 I've built a system that:
 - Collects occupant feedback on thermal comfort using a lightweight digital form.
 - Maps discomfort trends by time and room.
 - Correlates those trends with CO₂ concentration data, local weather, and HVAC runtime patterns (setpoints).
-- Proposes actionable insights for facilities teams to optimize temperature settings, reduce over-conditioning, and minimize energy waste — all while improving occupant well-being.
+- Proposes actionable insights for facilities teams to optimize temperature settings, reduce over-conditioning, and minimize energy waste — all while improving occupant well-being.-->
