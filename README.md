@@ -50,27 +50,32 @@ comfort_index = (
 
 ## Planned Data Flow
 User Input
+
    ↓
+
 Location Validation (via WiFi or Room ID)
+
    ↓
+
 Data Stored in Supabase (Room ID, Timestamp, Feedback, etc.)
+
    ↓
+
 Comfort Index Computation (per room / per time block)
+
    ↓
+
 Dashboard Visualization + Suggestions
 
 ## Pilot Details
 
-Current Site: College Library, UW–Madison
-
-Pilot Tools: Desk tents with QR codes, web dashboard for 1st floor
+- Current Site: College Library, UW–Madison
+- Pilot Tools: Desk tents with QR codes, web dashboard for 1st floor
 
 ## Goals:
 
 - Visualize discomfort hot spots
-
 - Suggest HVAC or design improvements
-
 - Explore links between CO₂, occupancy, and discomfort
 
 ## Next Steps
