@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ title }}</title>
+  <link rel="icon" href="https://aayana.com.np/wp-content/uploads/2024/08/cropped-Group-1-32x32.png" sizes="32x32" />
+  <link rel="apple-touch-icon" href="https://aayana.com.np/wp-content/uploads/2024/08/cropped-Group-1-180x180.png" />
+  <meta name="msapplication-TileImage" content="https://aayana.com.np/wp-content/uploads/2024/08/cropped-Group-1-270x270.png" />
+  <base href="https://aayana.com.np/ThermoComfortMaps/" />
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+    }
+    #map-container {
+      position: relative;
+      display: inline-block;
+    }
+    #floor-map {
+      max-width: 100%;
+      height: auto;
+      display: block;
+    }
+    #overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+    .marker {
+      position: absolute;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      cursor: pointer;
+    }
+    .hot { background-color: rgb(250, 91, 43); }
+    .warm { background-color: rgb(255, 165, 0); }
+    .ideal { background-color: rgb(121, 245, 121); }
+    .cool { background-color: rgb(67, 122, 224); }
+    .cold { background-color: rgb(20, 204, 250); }
+
+    .buttons {
+      margin-bottom: 10px;
+    }
+    button {
+      margin: 5px;
+      padding: 10px;
+      cursor: pointer;
+    }
+  </style>
+
+  <!-- Injected room data -->
+  <script>
+    const rooms = {{ rooms | tojson }};
+  </script>
+
+  <!-- Helper function -->
+  <script>
+    function pointInPolygon(point, vs) {
+      const x = point[0], y = point[1];
+      let inside = false;
+      for (let i = 0, j = vs.length - 1; i < vs.length; j = i++) {
+        const xi = vs[i][0], yi = vs[i][1];
+        const xj = vs[j][0], yj = vs[j][1];
+        const intersect = ((yi > y) != (yj > y)) &&
+          (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+        if (intersect) inside = !inside;
+      }
+      return inside;
+    }
+  </script>
+</head>
+<body>
+  <h2>{{ title }}</h2>
+  <p>Zoom in. Click to add markers. Right-click to remove your own (or long press on your mobile). Click "Save Markers" when you're done!</p>
+
+  <div class="buttons">
+    <button onclick="setMarkerType('hot')" style="background: red; color: white;">Too Hot</button>
+    <button onclick="setMarkerType('warm')" style="background: orange; color: white;">Warm</button>
+    <button onclick="setMarkerType('ideal')" style="background: green; color: white;">Ideal</button>
+    <button onclick="setMarkerType('cool')" style="background: cornflowerblue; color: white;">Cool</button>
+    <button onclick="setMarkerType('cold')" style="background: blue; color: white;">Too Cold</button>
+    <button onclick="saveMarkers()" style="background: black; color: white;">Save Markers</button>
+    <a href="{{ form_url }}" target="_blank" style="text-decoration: none;">
+    <button style="background: gray; color: white;">Other Concern? Share anonymously</button>
+  </a>
+  </div>
+
+  <div class="map-container" id="map-container">
+    <img src="{{ image }}" id="floor-map" alt="Floor Map" />
+    <svg id="overlay"></svg>
+  </div>
+
+  <script>
+    let selectedMarkerType = 'ideal';
+    let markers = [];
+    const mapImage = document.getElementById("floor-map");
+    const overlay = document.getElementById("overlay");
+    const container = document.getElementById("map-container");
+
+    function setMarkerType(type) {
+      selectedMarkerType = type;
+    }
+
+    mapImage.onload = () => {
+      const scaleX = mapImage.clientWidth / mapImage.naturalWidth;
+      const scaleY = mapImage.clientHeight / mapImage.naturalHeight;
+
+      rooms.forEach(room => {
+        const points = room.polygon.map(([x, y]) => `${x * scaleX},${y * scaleY}`).join(" ");
+        const polygon = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+        polygon.setAttribute("points", points);
+        polygon.setAttribute("fill", "none");
+        polygon.setAttribute("stroke", "red");
+        polygon.setAttribute("stroke-width", "1");
+        polygon.setAttribute("data-room-id", room.id);
+        overlay.appendChild(polygon);
+      });
+    };
+
+    container.addEventListener('click', function (event) {
+      if (event.target.tagName !== 'IMG') return;
+
+      const rect = mapImage.getBoundingClientRect();
+      const clickX = event.clientX - rect.left;
+      const clickY = event.clientY - rect.top;
+
+      let clickedRoom = null;
+      for (const room of rooms) {
+        if (pointInPolygon([clickX, clickY], room.polygon.map(([x, y]) => [
+          x * (mapImage.clientWidth / mapImage.naturalWidth),
+          y * (mapImage.clientHeight / mapImage.naturalHeight)
+        ]))) {
+          clickedRoom = room.id;
+          break;
+        }
+      }
+
+      if (!clickedRoom) {
+        alert("Click inside a defined room area.");
+        return;
+      }
+
+      const xPercent = (clickX / rect.width) * 100;
+      const yPercent = (clickY / rect.height) * 100;
+
+      // Replace any existing marker in this room
+      const existing = markers.find(m => m.room_id === clickedRoom);
+      if (existing) {
+        existing.element.remove();
+        markers = markers.filter(m => m.room_id !== clickedRoom);
+      }
+
+      const marker = document.createElement('div');
+      marker.className = `marker ${selectedMarkerType}`;
+      marker.style.left = `${xPercent}%`;
+      marker.style.top = `${yPercent}%`;
+
+      marker.addEventListener('contextmenu', function (e) {
+        e.preventDefault();
+        if (!marker.dataset.fromSupabase) {
+          markers = markers.filter(m => m.element !== marker);
+          marker.remove();
+        }
+      });
+        
+      marker.timestamp = Date.now();
+      
+      container.appendChild(marker);
+    
+      //User click saved in Supabase
+      markers.push({
+        x: xPercent,
+        y: yPercent,
+        type: selectedMarkerType,
+        room_id: clickedRoom,
+        element: marker,
+        timestamp: marker.timestamp
+      });
+    });
+
+    function saveMarkers() {
+      const userId = localStorage.getItem("userId") || crypto.randomUUID();
+      localStorage.setItem("userId", userId); 
+        
+      const markerData = markers.map(m => ({
+        x: m.x,
+        y: m.y,
+        type: m.type,
+        room_id: m.room_id,
+        timestamp: m.timestamp
+      }));
+      
+      fetch("/ThermoComfortMaps/submit-markers", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          user_id: userId,
+          location: "{{ location }}",
+          markers: markerData
+        })
+      })
+      .then(response => {
+        if (response.ok) {
+          window.location.href = "{{ form_url }}";
+        } else {
+            return response.text().then(text => {
+            console.error("Server error:", text);
+            alert("Failed to save markers.");
+        });
+        }
+      })
+      .catch(err => alert("Error: " + err));
+    }
+
+    window.onload = function () {
+      const userId = localStorage.getItem("userId") || crypto.randomUUID();
+      localStorage.setItem("userId", userId);
+
+      fetch(`/ThermoComfortMaps/get-markers/{{ location }}/` + userId)
+        .then(res => res.json())
+        .then(markerList => {
+            if (!Array.isArray(markerList)) {
+                console.error("Marker data is not an array", markerList);
+                return;
+            }
+            console.log("Markers loaded:", markerList);
+            markerList.forEach(({ x, y, type, room_id }) => {
+                const marker = document.createElement('div');
+                marker.className = `marker ${type}`;
+                marker.style.left = `${x}%`;
+                marker.style.top = `${y}%`;
+                marker.dataset.fromSupabase = true;
+                container.appendChild(marker);
+                
+                markers.push({
+                x,
+                y,
+                type,
+                room_id,
+                element: marker,
+                timestamp: Date.now()
+        });
+      });
+    })
+    .catch(err => {
+      console.error("Failed to load markers:", err);
+    });
+};
+  </script>
+</body>
+</html>
