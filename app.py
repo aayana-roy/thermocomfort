@@ -147,6 +147,7 @@ def get_markers(location, user_id):
         return jsonify({"error": str(e)}), 500
 
 # This is an experiment for the dashboard. May change!!!
+# Display dashboard for a location
 @app.route("/<location>/dashboard")
 def dashboard(location):
     if location not in locations:
@@ -314,11 +315,11 @@ def api_comfort_data(location):
         elif index <= -0.25:
             return {"color": "#fca5a5", "note": "Warm"}    # red-300
         elif index <= 0.25:
-            return {"color": "#34d399", "note": "Ideal"}   # green-400
+            return {"color": "#06D488", "note": "Ideal"}   # green-400
         elif index <= 0.75:
-            return {"color": "#a5b4fc", "note": "Cool"}    # indigo-300
+            return {"color": "#2b98f8", "note": "Cool"}    # lightbluw-300
         else:
-            return {"color": "#3b82f6", "note": "Too Cold"} # blue-500
+            return {"color": "#0364ff", "note": "Too Cold"} # blue-500
 
     rooms = {}
     for room_id, counts in room_stats.items():
