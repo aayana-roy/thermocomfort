@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{{ title }}</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+  <link rel="icon" href="https://aayana.com.np/wp-content/uploads/2024/08/cropped-Group-1-32x32.png" sizes="32x32" />
+  <link rel="apple-touch-icon" href="https://aayana.com.np/wp-content/uploads/2024/08/cropped-Group-1-180x180.png" />
+  <meta name="msapplication-TileImage" content="https://aayana.com.np/wp-content/uploads/2024/08/cropped-Group-1-270x270.png" />
+  <base href="https://aayana.com.np/ThermoComfortMaps/">
+  <style>
+    .tooltip {
+      position: absolute;
+      background-color: rgba(0, 0, 0, 0.75);
+      color: white;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.875rem;
+      pointer-events: none;
+      display: none;
+      z-index: 50;
+    }
+    #map-container {
+      position: relative;
+      width: 100%;
+      max-width: 900px;
+      aspect-ratio: 1.6 / 1;
+      margin: 0 auto;
+    }
+    #floorMap, #roomMap {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    #roomMap polygon {
+      pointer-events: auto;
+      transition: fill 0.3s ease;
+      opacity: 0.5;
+      stroke: black;
+      stroke-width: 0.5;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 p-6 relative">
+
+  <!-- Header -->
+  <header class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-800">{{ title }}</h1>
+    <p class="text-gray-600">Overview of user-reported comfort feedback</p>
+    <p class="text-sm text-gray-500 mt-1" id="lastUpdated">Last updated: --</p>
+  </header>
+
+  <!-- Time Filter Slider -->
+  <div class="bg-white rounded-2xl p-4 shadow mb-6">
+    <label for="timeRange" class="block text-gray-700 font-medium mb-2">Filter Time Range (Hours)</label>
+    <input type="range" id="timeRange" min="3" max="24" step="1" value="3" class="w-full" />
+    <p class="mt-2 text-gray-600">Last <span id="timeValue">3</span> hours</p>
+    <label class="inline-flex items-center mt-2">
+      <input type="checkbox" id="autoRefresh" class="form-checkbox mr-2" />
+      <span class="text-gray-700 text-sm">Auto-refresh every 5 min</span>
+    </label>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div class="bg-white rounded-2xl p-4 shadow">
+      <h3 class="text-sm text-gray-500">Average Comfort Index</h3>
+      <p class="text-2xl font-bold text-blue-600" id="avgComfort">--</p>
+    </div>
+    <div class="bg-white rounded-2xl p-4 shadow">
+      <h3 class="text-sm text-gray-500">Too Hot (%)</h3>
+      <p class="text-2xl font-bold text-red-500" id="tooHot">--</p>
+    </div>
+    <div class="bg-white rounded-2xl p-4 shadow">
+      <h3 class="text-sm text-gray-500">Too Cold (%)</h3>
+      <p class="text-2xl font-bold text-blue-500" id="tooCold">--</p>
+    </div>
+    <div class="bg-white rounded-2xl p-4 shadow">
+      <h3 class="text-sm text-gray-500">Total Submissions</h3>
+      <p class="text-2xl font-bold text-green-600" id="totalSubmissions">--</p>
+    </div>
+  </div>
+
+  <!-- Room Map Visualization -->
+  <div class="bg-white p-6 rounded-2xl shadow mb-6">
+    <h2 class="text-xl font-semibold mb-4">Comfort Heatmap</h2>
+    
+    <!-- Color Legend -->
+    <div class="flex items-center justify-center mb-4 space-x-4">
+      <div class="flex items-center space-x-1">
+        <div class="w-6 h-6 rounded" style="background-color: rgb(250, 91, 43);"></div>
+        <span class="text-gray-700 text-sm">Too Hot</span>
+      </div>
+      <div class="flex items-center space-x-1">
+        <div class="w-6 h-6 rounded" style="background-color: rgb(255, 165, 0);"></div>
+        <span class="text-gray-700 text-sm">Warm</span>
+      </div>
+      <div class="flex items-center space-x-1">
+        <div class="w-6 h-6 rounded" style="background-color: rgb(121, 245, 121);"></div>
+        <span class="text-gray-700 text-sm">Ideal</span>
+      </div>
+      <div class="flex items-center space-x-1">
+        <div class="w-6 h-6 rounded" style="background-color: rgb(67, 122, 224);"></div>
+        <span class="text-gray-700 text-sm">Cool</span>
+      </div>
+      <div class="flex items-center space-x-1">
+        <div class="w-6 h-6 rounded" style="background-color: rgb(20, 204, 250);"></div>
+        <span class="text-gray-700 text-sm">Too Cold</span>
+      </div>
+    </div>
+
+    
+    <div id="map-container">
+      <img id="floorMap" src="{{ image }}" alt="Floor Map" />
+      <svg id="roomMap"></svg>
+      <div id="tooltip" class="tooltip"></div>
+    </div>
+  </div>
+
+  <!-- Comfort Over Time Chart -->
+  <div class="bg-white p-6 rounded-2xl shadow mb-6">
+    <h2 class="text-xl font-semibold mb-4">Comfort Trend Over Time (NOTE: Index calculation will change!)</h2>
+    <canvas id="comfortChart" height="100"></canvas>
+  </div>
+  
+  <!-- HVAC Insights Box -->
+  <div class="bg-white p-6 rounded-2xl shadow mb-6">
+    <h2 class="text-xl font-semibold mb-4">HVAC Insights</h2>
+    <p class="text-gray-700 leading-relaxed">
+      Here you can add key insights about HVAC system performance, energy usage patterns, or user comfort trends.
+      This box is designed to summarize important notes or recommendations based on the data visualized above.
+    </p>
+  </div>
+
+  <script>
+    const locationSlug = "{{ location }}";
+    const rooms = {{ rooms | tojson }};
+
+    async function fetchDashboardData(hours = 3) {
+      const res = await fetch(`/ThermoComfortMaps/api/${locationSlug}/comfort-data?hours=${hours}`);
+      if (!res.ok) {
+        console.error('Failed to fetch data', res.statusText);
+        return null;
+      }
+      return await res.json();
+    }
+
+    function updateLastUpdated() {
+      document.getElementById("lastUpdated").textContent = "Last updated: " + new Date().toLocaleTimeString();
+    }
+
+    function updateKPIs(data) {
+      if (!data) return;
+      document.getElementById("avgComfort").textContent = data.avgComfort.toFixed(2);
+      document.getElementById("tooHot").textContent = data.tooHot + "%";
+      document.getElementById("tooCold").textContent = data.tooCold + "%";
+      document.getElementById("totalSubmissions").textContent = data.totalSubmissions;
+      updateLastUpdated();
+    }
+
+    let comfortChart;
+    function updateChart(trend) {
+      if (!trend) return;
+      const ctx = document.getElementById("comfortChart").getContext("2d");
+      if (comfortChart) comfortChart.destroy();
+      comfortChart = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: trend.labels,
+          datasets: [{
+            label: "Avg Comfort Score",
+            data: trend.values,
+            borderColor: "rgb(37, 99, 235)",
+            backgroundColor: "rgba(37, 99, 235, 0.2)",
+            tension: 0.3,
+            fill: true
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: { y: { min: -1, max: 1 } }
+        }
+      });
+    }
+
+    function updateMap(roomData) {
+      const image = document.getElementById("floorMap");
+      const svg = document.getElementById("roomMap");
+      svg.innerHTML = ''; // Clear old polygons
+
+      if (!roomData || !image.complete) return;
+
+      const scaleX = image.clientWidth / image.naturalWidth;
+      const scaleY = image.clientHeight / image.naturalHeight;
+
+      Object.entries(roomData).forEach(([roomId, info]) => {
+        const rawPoints = rooms.find(r => r.id === roomId)?.polygon;
+        if (!rawPoints) return;
+
+        const scaledPoints = rawPoints.map(([x, y]) => `${x * scaleX},${y * scaleY}`).join(" ");
+        const polygon = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+        polygon.setAttribute("points", scaledPoints);
+        polygon.setAttribute("fill", info.color || "rgba(200,200,200,0.2)");
+        polygon.setAttribute("data-room", roomId);
+
+        polygon.addEventListener("mousemove", (e) => {
+          const tooltip = document.getElementById("tooltip");
+          tooltip.innerText = `${roomId}: ${info.note}`;
+          tooltip.style.left = `${e.pageX + 10}px`;
+          tooltip.style.top = `${e.pageY - 30}px`;
+          tooltip.style.display = "block";
+        });
+        polygon.addEventListener("mouseleave", () => {
+          document.getElementById("tooltip").style.display = "none";
+        });
+
+        svg.appendChild(polygon);
+      });
+    }
+
+    async function refreshData() {
+      const hours = document.getElementById("timeRange").value;
+      document.getElementById("timeValue").textContent = hours;
+      const data = await fetchDashboardData(hours);
+      updateKPIs(data);
+      updateChart(data?.trend);
+      updateMap(data?.rooms);
+    }
+
+    document.getElementById("timeRange").addEventListener("input", refreshData);
+    setInterval(() => {
+      if (document.getElementById("autoRefresh").checked) {
+        refreshData();
+      }
+    }, 300000)
+
+    // Initial load
+    window.addEventListener("load", refreshData);
+  </script>
+</body>
+</html>
