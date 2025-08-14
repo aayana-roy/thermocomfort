@@ -14,10 +14,14 @@
       font-family: Arial, sans-serif;
       text-align: center;
     }
+    
     #map-container {
       position: relative;
       display: inline-block;
+      width: 100%;          /* Full width on mobile */
+      max-width: 800px;     /* Optional: limit on desktop */
     }
+    
     #floor-map {
       max-width: 100%;
       height: auto;
@@ -33,8 +37,8 @@
     }
     .marker {
       position: absolute;
-      width: 7px;
-      height: 7px;
+      width: 10px;
+      height: 10px;
       border-radius: 50%;
       transform: translate(-50%, -50%);
       cursor: pointer;
@@ -44,6 +48,25 @@
     .ideal { background-color: rgb(121, 245, 121); }
     .cool { background-color: rgb(67, 122, 224); }
     .cold { background-color: rgb(20, 204, 250); }
+
+    /* Buttons / icons should scale */
+    .temp-btn, .clothing-btm, .lighting-btm {
+      width: 60px;      /* slightly bigger touch area */
+      height: 60px;
+      margin: 8px;
+    }
+    /* Center text & allow wrapping */
+    .buttons, .clothing, .lighting {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 15px;
+      gap: 10px;
+    }
+
+    .temp-btn:hover {
+      transform: scale(1.1);
+    }
 
     .buttons {
       margin-bottom: 10px;
@@ -77,29 +100,47 @@
   </script>
 </head>
 <body>
-  <h2>{{ title }}</h2>
-  <p>Zoom in. Click to add markers. Right-click to remove your own (or long press on your mobile). Click "Save Markers" when you're done!</p>
-
+  <h2>How do you feel? Mark your spot on the map of your room.</h2>
   <div class="buttons">
-    <button onclick="setMarkerType('hot')" style="background: red; color: white;">Too Hot</button>
-    <button onclick="setMarkerType('warm')" style="background: orange; color: white;">Warm</button>
-    <button onclick="setMarkerType('ideal')" style="background: green; color: white;">Ideal</button>
-    <button onclick="setMarkerType('cool')" style="background: cornflowerblue; color: white;">Cool</button>
-    <button onclick="setMarkerType('cold')" style="background: blue; color: white;">Too Cold</button>
-    <button onclick="saveMarkers()" style="background: black; color: white;">Save Markers</button>
+    <img src="hot-thermo.png" alt="hot" class="temp-btm" onclick="setMarkerType('hot')">
+    <img src="ideal-thermo.png" alt="ideal" class="temp-btm" onclick="setMarkerType('ideal')">
+    <img src="cold-thermo.png" alt="cold" class="temp-btm" onclick="setMarkerType('cold')">
     <a href="{{ form_url }}" target="_blank" style="text-decoration: none;">
-    <button style="background: gray; color: white;">Other Concern? Share anonymously</button>
+    <button style="background: rgb(255, 64, 64); color: white;">Share Other Concern</button>
   </a>
   </div>
-
+  
   <div class="map-container" id="map-container">
     <img src="{{ image }}" id="floor-map" alt="Floor Map" />
     <svg id="overlay"></svg>
+     <!-- Trash can button -->
+    <img src="trash-icon.png" 
+       id="delete-marker-btn" 
+       style="position:absolute; top:10px; right:10px; width:40px; height:40px; cursor:pointer; z-index:10;" 
+       title="Delete selected marker">
+  </div>
+
+  <h2>What best describes your clothing?.</h2>
+  <div class="clothing">
+    <img src="jacket.png" alt="heavy" class="clothing-btm" onclick="setClothing('heavy', event)">
+    <img src="sweatshirt.png" alt="medium" class="clothing-btm" onclick="setClothing('medium', event)">
+    <img src="tshirt.png" alt="light" class="clothing-btm" onclick="setClothing('light', event)">
+  </div>
+
+  <h2>What best describes natural light?.</h2>
+  <div class="lighting">
+    <img src="sun.png" alt="sunny" class="lighting-btm" onclick="setLighting('sunny', event)">
+    <img src="cloud.png" alt="cloudy" class="lighting-btm" onclick="setLighting('cloudy', event)">
+    <img src="moon.png" alt="night" class="lighting-btm" onclick="setLighting('night', event)">
+    <img src="no-window.png" alt="no window" class="lighting-btm" onclick="setLighting('no_window', event)">
   </div>
 
   <script>
     let selectedMarkerType = 'ideal';
+    let selectedClothing = null;
+    let selectedLighting = null;
     let markers = [];
+    let selectedMarker = null;
     const mapImage = document.getElementById("floor-map");
     const overlay = document.getElementById("overlay");
     const container = document.getElementById("map-container");
@@ -108,24 +149,69 @@
       selectedMarkerType = type;
     }
 
-    mapImage.onload = () => {
-      const scaleX = mapImage.clientWidth / mapImage.naturalWidth;
-      const scaleY = mapImage.clientHeight / mapImage.naturalHeight;
+    function setClothing(type, event) {
+      selectedClothing = type;
+      // Optional: highlight selected image
+      document.querySelectorAll('.clothing-btm').forEach(img => img.style.border = '');
+      event.target.style.border = "2px solid black";
+    }
 
-      rooms.forEach(room => {
-        const points = room.polygon.map(([x, y]) => `${x * scaleX},${y * scaleY}`).join(" ");
-        const polygon = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
-        polygon.setAttribute("points", points);
-        polygon.setAttribute("fill", "none");
-        polygon.setAttribute("stroke", "red");
-        polygon.setAttribute("stroke-width", "1");
-        polygon.setAttribute("data-room-id", room.id);
-        overlay.appendChild(polygon);
-      });
-    };
+    function setLighting(type, event) {
+      selectedLighting = type;
+      // Optional: highlight selected image
+      document.querySelectorAll('.lighting-btm').forEach(img => img.style.border = '');
+      event.target.style.border = "2px solid black";
+    }
 
+    // Create a marker
+    function createMarker(xPercent, yPercent, type, room_id, fromSupabase=false) {
+      // Remove existing marker in room
+      const existing = markers.find(m => m.room_id === room_id);
+      if (existing) {
+        existing.element.remove();
+        markers = markers.filter(m => m.room_id !== room_id);
+      }
+    
+    const marker = document.createElement('div');
+    marker.className = `marker ${type}`;
+    marker.style.left = `${xPercent}%`;
+    marker.style.top = `${yPercent}%`;
+
+    // Select marker on click
+    marker.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (selectedMarker) selectedMarker.style.border = '';
+      selectedMarker = marker;
+      selectedMarker.style.border = '2px solid black'; // highlight selected
+    });
+
+    if (!fromSupabase) marker.timestamp = Date.now();
+
+    container.appendChild(marker);
+
+    markers.push({
+      x: xPercent,
+      y: yPercent,
+      type,
+      room_id,
+      element: marker,
+      timestamp: marker.timestamp || Date.now()
+    });
+  }
+
+  // Click trash can to delete selected marker
+  document.getElementById('delete-marker-btn').addEventListener('click', () => {
+    if (selectedMarker) {
+      markers = markers.filter(m => m.element !== selectedMarker);
+      selectedMarker.remove();
+      selectedMarker = null;
+    } else {
+      alert("Select a marker first to delete it.");
+    }
+  });
+    // Place marker on map click
     container.addEventListener('click', function (event) {
-      if (event.target.tagName !== 'IMG') return;
+      if (event.target.tagName !== 'floor_map') return;
 
       const rect = mapImage.getBoundingClientRect();
       const clickX = event.clientX - rect.left;
@@ -150,39 +236,7 @@
       const xPercent = (clickX / rect.width) * 100;
       const yPercent = (clickY / rect.height) * 100;
 
-      // Replace any existing marker in this room
-      const existing = markers.find(m => m.room_id === clickedRoom);
-      if (existing) {
-        existing.element.remove();
-        markers = markers.filter(m => m.room_id !== clickedRoom);
-      }
-
-      const marker = document.createElement('div');
-      marker.className = `marker ${selectedMarkerType}`;
-      marker.style.left = `${xPercent}%`;
-      marker.style.top = `${yPercent}%`;
-
-      marker.addEventListener('contextmenu', function (e) {
-        e.preventDefault();
-        if (!marker.dataset.fromSupabase) {
-          markers = markers.filter(m => m.element !== marker);
-          marker.remove();
-        }
-      });
-        
-      marker.timestamp = Date.now();
-      
-      container.appendChild(marker);
-    
-      //User click saved in Supabase
-      markers.push({
-        x: xPercent,
-        y: yPercent,
-        type: selectedMarkerType,
-        room_id: clickedRoom,
-        element: marker,
-        timestamp: marker.timestamp
-      });
+      createMarker(xPercent, yPercent, selectedMarkerType, clickedRoom);
     });
 
     function saveMarkers() {
@@ -199,62 +253,43 @@
       
       fetch("/ThermoComfortMaps/submit-markers", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
+        headers: {"Content-Type": "application/json"},
         body: JSON.stringify({
           user_id: userId,
           location: "{{ location }}",
-          markers: markerData
+          markers: markerData,
+          clothing: selectedClothing,
+          lighting: selectedLighting
         })
       })
       .then(response => {
-        if (response.ok) {
-          window.location.href = "{{ form_url }}";
-        } else {
-            return response.text().then(text => {
+        if (!response.ok) {
+          return response.text().then(text => {
             console.error("Server error:", text);
             alert("Failed to save markers.");
         });
+       } else {
+          alert("Markers saved successfully!");
         }
       })
       .catch(err => alert("Error: " + err));
     }
 
-    window.onload = function () {
-      const userId = localStorage.getItem("userId") || crypto.randomUUID();
-      localStorage.setItem("userId", userId);
+    // --- Load existing markers ---
+window.addEventListener('load', () => {
+  const userId = localStorage.getItem("userId") || crypto.randomUUID();
+  localStorage.setItem("userId", userId);
 
-      fetch(`/ThermoComfortMaps/get-markers/{{ location }}/` + userId)
-        .then(res => res.json())
-        .then(markerList => {
-            if (!Array.isArray(markerList)) {
-                console.error("Marker data is not an array", markerList);
-                return;
-            }
-            console.log("Markers loaded:", markerList);
-            markerList.forEach(({ x, y, type, room_id }) => {
-                const marker = document.createElement('div');
-                marker.className = `marker ${type}`;
-                marker.style.left = `${x}%`;
-                marker.style.top = `${y}%`;
-                marker.dataset.fromSupabase = true;
-                container.appendChild(marker);
-                
-                markers.push({
-                x,
-                y,
-                type,
-                room_id,
-                element: marker,
-                timestamp: Date.now()
-        });
+  fetch(`/ThermoComfortMaps/get-markers/{{ location }}/` + userId)
+    .then(res => res.json())
+    .then(markerList => {
+      if (!Array.isArray(markerList)) return;
+      markerList.forEach(({ x, y, type, room_id }) => {
+        createMarker(x, y, type, room_id, true);
       });
     })
-    .catch(err => {
-      console.error("Failed to load markers:", err);
-    });
-};
-  </script>
+    .catch(err => console.error("Failed to load markers:", err));
+});
+</script>
 </body>
 </html>
