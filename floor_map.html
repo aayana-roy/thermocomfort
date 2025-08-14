@@ -165,7 +165,7 @@
     }
 
     // Create a marker
-    function createMarker(xPercent, yPercent, type, room_id, fromSupabase=false) {
+    function createMarker(xPercent, yPercent, type, room_id, fromSupabase=false, clothing=null, lighting=null) {
       // Remove existing marker in room
       const existing = markers.find(m => m.room_id === room_id);
       if (existing) {
@@ -197,8 +197,8 @@
       room_id,
       element: marker,
       timestamp: marker.timestamp || Date.now(),
-      clothing: selectedClothing,
-      lighting: selectedLighting
+      clothing: m.clothing,
+      lighting: m.lighting
     });
   }
 
