@@ -115,6 +115,8 @@ def submit_markers():
                 "x": marker.get("x"),
                 "y": marker.get("y"),
                 "type": marker.get("type"),
+                "clothing": marker.get("clothing"),
+                "lighting": marker.get("lighting"),
                 "timestamp": datetime.fromtimestamp(marker.get("timestamp") / 1000).isoformat()
             }).execute()
         print("Markers saved.")
@@ -124,6 +126,7 @@ def submit_markers():
         print("Error in /submit-markers:", e)
         return jsonify({"error": str(e)}), 500
 
+# Fetch markers for a location and user_id from last 3 hours
 @app.route("/get-markers/<location>/<user_id>")
 def get_markers(location, user_id):
     try:
@@ -145,6 +148,16 @@ def get_markers(location, user_id):
     except Exception as e:
         print("Error in /get-markers:", e)
         return jsonify({"error": str(e)}), 500
+
+# Delete markers for a location and user_id
+@app.route("/delete-markers/<location>/<user_id>", methods=["DELETE"])
+def delete_markers(location, user_id):
+    result = markers_collection.delete_many({
+        "location": location,
+        "user_id": user_id
+    })
+    return jsonify({"message": "All markers deleted"}), 200
+
 
 # This is an experiment for the dashboard. May change!!!
 # Display dashboard for a location
