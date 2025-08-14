@@ -42,6 +42,7 @@
       border-radius: 50%;
       transform: translate(-50%, -50%);
       cursor: pointer;
+      z-index: 5;
     }
     .hot { background-color: rgb(250, 91, 43); }
     .warm { background-color: rgb(255, 165, 0); }
@@ -209,7 +210,7 @@
   });
     // Place marker on map click
     container.addEventListener('click', function (event) {
-      if (event.target.tagName !== 'floor_map') return;
+      if (event.target.id !== 'floor-map') return;
 
       const rect = mapImage.getBoundingClientRect();
       const clickX = event.clientX - rect.left;
