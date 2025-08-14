@@ -50,7 +50,7 @@
     .cold { background-color: rgb(20, 204, 250); }
 
     /* Buttons / icons should scale */
-    .temp-btn, .clothing-btm, .lighting-btm {
+    .temp-btm, .clothing-btm, .lighting-btm {
       width: 60px;      /* slightly bigger touch area */
       height: 60px;
       margin: 8px;
@@ -64,13 +64,6 @@
       gap: 10px;
     }
 
-    .temp-btn:hover {
-      transform: scale(1.1);
-    }
-
-    .buttons {
-      margin-bottom: 10px;
-    }
     button {
       margin: 5px;
       padding: 10px;
@@ -100,39 +93,44 @@
   </script>
 </head>
 <body>
-  <h2>How do you feel? Mark your spot on the map of your room.</h2>
+  <h2>How do you feel?</h2>
+  <h3>Select a temperature marker and click on the map to place it.</h3>
   <div class="buttons">
     <img src="static/images/hot-thermo.png" alt="hot" class="temp-btm" onclick="setMarkerType('hot')">
     <img src="static/images/ideal-thermo.png" alt="ideal" class="temp-btm" onclick="setMarkerType('ideal')">
     <img src="static/images/cold-thermo.png" alt="cold" class="temp-btm" onclick="setMarkerType('cold')">
-    <a href="{{ form_url }}" target="_blank" style="text-decoration: none;">
-    <button style="background: rgb(255, 64, 64); color: white;">Share Other Concern</button>
-  </a>
   </div>
   
   <div class="map-container" id="map-container">
     <img src="{{ image }}" id="floor-map" alt="Floor Map" />
     <svg id="overlay"></svg>
      <!-- Trash can button -->
-    <img src="trash-icon.png" 
+    <img src="static/images/trash-icon.png" 
        id="delete-marker-btn" 
        style="position:absolute; top:10px; right:10px; width:40px; height:40px; cursor:pointer; z-index:10;" 
        title="Delete selected marker">
   </div>
 
-  <h2>What best describes your clothing?.</h2>
+  <h2>What best describes your clothing?</h2>
   <div class="clothing">
-    <img src="static/images/jacket.png" alt="heavy" class="clothing-btm" onclick="setClothing('heavy', event)">
-    <img src="static/images/sweatshirt.png" alt="medium" class="clothing-btm" onclick="setClothing('medium', event)">
     <img src="static/images/tshirt.png" alt="light" class="clothing-btm" onclick="setClothing('light', event)">
+    <img src="static/images/sweatshirt.png" alt="medium" class="clothing-btm" onclick="setClothing('medium', event)">
+    <img src="static/images/jacket.png" alt="heavy" class="clothing-btm" onclick="setClothing('heavy', event)"> 
   </div>
 
-  <h2>What best describes natural light?.</h2>
+  <h2>What best describes natural light?</h2>
   <div class="lighting">
+    <img src="static/images/no-window.png" alt="no window" class="lighting-btm" onclick="setLighting('no_window', event)">
     <img src="static/images/sun.png" alt="sunny" class="lighting-btm" onclick="setLighting('sunny', event)">
     <img src="static/images/cloud.png" alt="cloudy" class="lighting-btm" onclick="setLighting('cloudy', event)">
     <img src="static/images/moon.png" alt="night" class="lighting-btm" onclick="setLighting('night', event)">
-    <img src="static/images/no-window.png" alt="no window" class="lighting-btm" onclick="setLighting('no_window', event)">
+  </div>
+
+  <div class="save-section">
+    <button onclick="saveMarkers()">Save My Feedback</button>
+    <a href="{{ form_url }}" target="_blank" style="text-decoration: none;">
+    <button style="background: rgb(255, 64, 64); color: white;">Share Other Concern</button>
+  </a>
   </div>
 
   <script>
