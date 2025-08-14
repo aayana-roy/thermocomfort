@@ -85,9 +85,8 @@
 
     /* Buttons / icons should scale */
     .temp-btm {
-      width: 90px;
-      height: 90px;
-      margin: 8px;
+      border: none;
+      outline: none;
     }
 
     /* Buttons / icons should scale */
@@ -155,20 +154,15 @@
     <h3>How do you feel?</h3>
     <h5>Select a temperature marker and tap on the map to locate yourself.</h5>
     <div class="buttons">
-      <button onclick="setMarkerType('hot', event)" style="background: red; color: white;">Too Hot</button>
-      <button onclick="setMarkerType('warm', event)" style="background: orange; color: white;">Warm</button>
-      <button onclick="setMarkerType('ideal', event)" style="background: green; color: white;">Ideal</button>
-      <button onclick="setMarkerType('cool', event)" style="background: cornflowerblue; color: white;">Cool</button>
-      <button onclick="setMarkerType('cold', event)" style="background: blue; color: white;">Too Cold</button>
+      <button class="temp-btm" onclick="setMarkerType('hot', event)" style="background: red; color: white;">Too Hot</button>
+      <button class="temp-btm" onclick="setMarkerType('warm', event)" style="background: orange; color: white;">Warm</button>
+      <button class="temp-btm" onclick="setMarkerType('ideal', event)" style="background: green; color: white;">Ideal</button>
+      <button class="temp-btm" onclick="setMarkerType('cool', event)" style="background: cornflowerblue; color: white;">Cool</button>
+      <button class="temp-btm" onclick="setMarkerType('cold', event)" style="background: blue; color: white;">Too Cold</button>
     </div>
     <div class="map-container" id="map-container">
       <img src="{{ image }}" id="floor-map" alt="Floor Map" />
       <svg id="overlay"></svg>
-      <!-- Trash can button -->
-      <img src="static/images/trash-icon.png" 
-        id="delete-marker-btn" 
-        style="position:absolute; top:10px; right:10px; width:40px; height:40px; cursor:pointer; z-index:10;" 
-        title="Delete selected marker">
     </div>
   </div>
 
@@ -279,23 +273,6 @@
       const yPercent = (clickY / rect.height) * 100;
 
       createMarker(xPercent, yPercent, selectedMarkerType);
-    });
-
-    // Click trash can to delete selected marker
-    document.getElementById('delete-marker-btn').addEventListener('click', ()=>{
-      if(confirm("Delete all markers? This cannot be undone.")){
-        const userId = localStorage.getItem("userId");
-        if(!userId){ alert("No markers to delete."); return; }
-        markers.forEach(m=>m.element.remove()); markers=[]; selectedMarker=null;
-        fetch(`/ThermoComfortMaps/delete-markers/{{ location }}/${userId}`,{method:"DELETE"})
-        .then(response=> {
-          if(response.ok) {
-            alert("All markers deleted successfully!");
-          } else
-          throw new Error("Delete failed");
-        })
-        .catch(err=>alert("Error deleting markers: "+err));
-      }
     });
 
     // Save markers to server
