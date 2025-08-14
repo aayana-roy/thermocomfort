@@ -97,9 +97,9 @@
   <h2>How do you feel?</h2>
   <h3>Select a temperature marker and click on the map to locate yourself.</h3>
   <div class="buttons">
-    <img src="static/images/hot-thermo.png" alt="hot" class="temp-btm" onclick="setMarkerType('hot')">
-    <img src="static/images/ideal-thermo.png" alt="ideal" class="temp-btm" onclick="setMarkerType('ideal')">
-    <img src="static/images/cold-thermo.png" alt="cold" class="temp-btm" onclick="setMarkerType('cold')">
+    <img src="static/images/hot-thermo.png" alt="hot" class="temp-btm" onclick="setMarkerType('hot', event)">
+    <img src="static/images/ideal-thermo.png" alt="ideal" class="temp-btm" onclick="setMarkerType('ideal', event)">
+    <img src="static/images/cold-thermo.png" alt="cold" class="temp-btm" onclick="setMarkerType('cold', event)">
   </div>
   
   <div class="map-container" id="map-container">
@@ -144,8 +144,10 @@
     const overlay = document.getElementById("overlay");
     const container = document.getElementById("map-container");
 
-    function setMarkerType(type) {
+    function setMarkerType(type, event) {
       selectedMarkerType = type;
+      document.querySelectorAll('.temp-btm').forEach(img => img.style.border = '');
+      event.target.style.border = "2px solid black";
     }
 
     function setClothing(type, event) {
@@ -194,7 +196,7 @@
       type,
       room_id,
       element: marker,
-      timestamp: marker.timestamp || Date.now()
+      timestamp: marker.timestamp || Date.now(),
       clothing: selectedClothing,
       lighting: selectedLighting
     });
