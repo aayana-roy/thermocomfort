@@ -95,7 +95,7 @@
 </head>
 <body>
   <h2>How do you feel?</h2>
-  <h3>Select a temperature marker and click on the map to place it.</h3>
+  <h3>Select a temperature marker and click on the map to locate yourself.</h3>
   <div class="buttons">
     <img src="static/images/hot-thermo.png" alt="hot" class="temp-btm" onclick="setMarkerType('hot')">
     <img src="static/images/ideal-thermo.png" alt="ideal" class="temp-btm" onclick="setMarkerType('ideal')">
@@ -195,6 +195,8 @@
       room_id,
       element: marker,
       timestamp: marker.timestamp || Date.now()
+      clothing: selectedClothing,
+      lighting: selectedLighting
     });
   }
 
