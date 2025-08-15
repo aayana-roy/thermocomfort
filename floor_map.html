@@ -77,11 +77,11 @@
       cursor: pointer;
       z-index: 5;
     }
-    .hot { background-color: rgb(250, 91, 43); }
-    .warm { background-color: rgb(255, 165, 0); }
-    .ideal { background-color: rgb(121, 245, 121); }
-    .cool { background-color: rgb(67, 122, 224); }
-    .cold { background-color: rgb(20, 204, 250); }
+    .hot { background-color: #fa5b2b; }
+    .warm { background-color: #ffa500; }
+    .ideal { background-color: #79f579; }
+    .cool { background-color: #437ae0; }
+    .cold { background-color: #14ccfa; }
 
     /* Buttons / icons should scale */
     .temp-btm {
@@ -178,7 +178,7 @@
 
   <!-- Lighting -->
   <div class="card">
-  <h3>What best describes natural light?</h3>
+  <h3>What best describes the view from your nearest window?</h3>
   <div class="lighting">
     <img src="static/images/no-window.png" alt="no window" class="lighting-btm" onclick="setLighting('no_window', event)">
     <img src="static/images/sun.png" alt="sunny" class="lighting-btm" onclick="setLighting('sunny', event)">
@@ -190,7 +190,7 @@
   <!-- Save section -->
   <div class="buttons">
     <a href="{{ form_url }}" target="_blank" style="text-decoration: none;">
-    <button style="background: #c5bebe; color: #333333;">Share Other Concern</button>
+    <button style="background: #f9f9f9; color: #333333;">Any other concerns?</button>
   </a>
     <button onclick="saveMarkers()" style="background: #9B0000; color: #FFFFFF;">Save My Feedback</button>
   </div>
